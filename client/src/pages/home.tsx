@@ -33,7 +33,11 @@ const Home = () => {
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [loadingEpisode, setLoadingEpisode] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState<string>('all');
-  const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
+  // Initialize with all years expanded by default
+  const [expandedYears, setExpandedYears] = useState<Set<string>>(() => {
+    const allYears = getYears().map(year => year.toString());
+    return new Set(allYears);
+  });
   const { toast } = useToast();
   
   const { 
