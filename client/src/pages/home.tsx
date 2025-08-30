@@ -33,6 +33,7 @@ const Home = () => {
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [loadingEpisode, setLoadingEpisode] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState<string>('all');
+  const [expandedYears, setExpandedYears] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   
   const { 
@@ -158,6 +159,27 @@ const Home = () => {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const toggleYearExpansion = (year: string) => {
+    setExpandedYears(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(year)) {
+        newSet.delete(year);
+      } else {
+        newSet.add(year);
+      }
+      return newSet;
+    });
+  };
+
+  const expandAllYears = () => {
+    const allYears = Object.keys(groupedEpisodes);
+    setExpandedYears(new Set(allYears));
+  };
+
+  const collapseAllYears = () => {
+    setExpandedYears(new Set());
   };
 
   const getFilteredEpisodes = () => {
@@ -403,45 +425,89 @@ const Home = () => {
           </CardContent>
         </Card>
 
+        {/* Year Controls */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={expandAllYears}
+              className="text-sm"
+              data-testid="button-expand-all"
+            >
+              <ChevronDown className="w-4 h-4 mr-1" />
+              Expandir Tudo
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={collapseAllYears}
+              className="text-sm"
+              data-testid="button-collapse-all"
+            >
+              <ChevronUp className="w-4 h-4 mr-1" />
+              Recolher Tudo
+            </Button>
+          </div>
+          <div className="text-sm text-gray-500">
+            {Object.keys(groupedEpisodes).length} anos disponíveis
+          </div>
+        </div>
+
         {/* Episode List */}
         <div className="space-y-6">
-          {Object.entries(groupedEpisodes).map(([year, episodes]) => (
-            <div key={year} className="animate-fade-in">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => handleYearCheck(year, episodes)}
-                    className="flex items-center justify-center w-6 h-6 rounded border-2 border-gray-300 hover:border-blue-500 transition-colors"
-                    data-testid={`button-year-${year}-check`}
-                    title={`Marcar/desmarcar todos os episódios de ${year}`}
-                  >
-                    {(() => {
-                      const status = getYearCheckStatus(episodes);
-                      if (status === 'all') {
-                        return <CheckSquare className="w-4 h-4 text-green-600" />;
-                      } else if (status === 'partial') {
-                        return <Minus className="w-4 h-4 text-yellow-600" />;
-                      } else {
-                        return <Square className="w-4 h-4 text-gray-400" />;
-                      }
-                    })()}
-                  </button>
-                  <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 font-semibold">
-                    {year}
-                  </Badge>
+          {Object.entries(groupedEpisodes).map(([year, episodes]) => {
+            const isExpanded = expandedYears.has(year);
+            return (
+              <div key={year} className="animate-fade-in">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleYearCheck(year, episodes)}
+                      className="flex items-center justify-center w-6 h-6 rounded border-2 border-gray-300 hover:border-blue-500 transition-colors"
+                      data-testid={`button-year-${year}-check`}
+                      title={`Marcar/desmarcar todos os episódios de ${year}`}
+                    >
+                      {(() => {
+                        const status = getYearCheckStatus(episodes);
+                        if (status === 'all') {
+                          return <CheckSquare className="w-4 h-4 text-green-600" />;
+                        } else if (status === 'partial') {
+                          return <Minus className="w-4 h-4 text-yellow-600" />;
+                        } else {
+                          return <Square className="w-4 h-4 text-gray-400" />;
+                        }
+                      })()}
+                    </button>
+                    <button
+                      onClick={() => toggleYearExpansion(year)}
+                      className="flex items-center space-x-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
+                      data-testid={`button-year-${year}-toggle`}
+                      title={`${isExpanded ? 'Recolher' : 'Expandir'} episódios de ${year}`}
+                    >
+                      <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 font-semibold">
+                        {year}
+                      </Badge>
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-gray-600" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-gray-600" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+                  <div className="text-sm text-gray-500">
+                    <span data-testid={`text-year-${year}-watched`}>
+                      {episodes.filter(ep => progress.watchedEpisodes[ep.id]).length}
+                    </span> de <span data-testid={`text-year-${year}-total`}>
+                      {episodes.length}
+                    </span> episódios
+                  </div>
                 </div>
-                <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
-                <div className="text-sm text-gray-500">
-                  <span data-testid={`text-year-${year}-watched`}>
-                    {episodes.filter(ep => progress.watchedEpisodes[ep.id]).length}
-                  </span> de <span data-testid={`text-year-${year}-total`}>
-                    {episodes.length}
-                  </span> episódios
-                </div>
-              </div>
 
-              <div className="grid gap-4">
-                {episodes.map((episode) => (
+              {isExpanded && (
+                <div className="grid gap-4">
+                  {episodes.map((episode) => (
                   <Card 
                     key={episode.id} 
                     className={`shadow-lg border transition-all duration-300 hover:shadow-xl overflow-hidden ${
@@ -573,10 +639,18 @@ const Home = () => {
                       )}
                     </CardContent>
                   </Card>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
+              
+              {!isExpanded && (
+                <div className="text-center py-4 text-gray-500 text-sm">
+                  {episodes.length} episódios recolhidos - clique para expandir
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Empty State */}
