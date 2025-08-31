@@ -554,6 +554,11 @@ const Home = () => {
                                   episode.series === 'Supergirl' ? 'bg-blue-100 text-blue-800' :
                                   episode.series === 'Constantine' ? 'bg-purple-100 text-purple-800' :
                                   episode.series === 'Vixen' ? 'bg-orange-100 text-orange-800' :
+                                  episode.series === 'DC\'s Legends of Tomorrow' ? 'bg-indigo-100 text-indigo-800' :
+                                  episode.series === 'Black Lightning' ? 'bg-yellow-100 text-yellow-800' :
+                                  episode.series === 'Batwoman' ? 'bg-rose-100 text-rose-800' :
+                                  episode.series === 'Superman & Lois' ? 'bg-cyan-100 text-cyan-800' :
+                                  episode.series === 'Stargirl' ? 'bg-amber-100 text-amber-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}
                               >
